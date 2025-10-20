@@ -1,5 +1,5 @@
 <?php
-require_once 'koneksi.php';
+
 
 $query = mysqli_query(
     $koneksi,

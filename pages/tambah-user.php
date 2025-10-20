@@ -16,7 +16,7 @@ if (isset($_POST['update'])) {
     }
 
     if ($query) {
-        header('location:user.php?update=success');
+        header('location:?page=user&update=success');
     }
 }
 
@@ -28,7 +28,7 @@ if (isset($_POST['submit'])) {
     $query = mysqli_query($koneksi, "INSERT INTO users (name, email, password) VALUES('$name','$email', '$password')");
 
     if ($query) {
-        header('location:user.php?add=success');
+        header('location:?page=user&add=success');
     }
 }
 

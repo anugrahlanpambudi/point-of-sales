@@ -3,6 +3,7 @@ session_start();
 include 'inc/functions.php';
 include 'config/koneksi.php';
 checkLogin();
+ob_start(); //digunakan untuk menunda pengiriman output ke browser.
 ?>
 
 <!DOCTYPE html>
@@ -12,8 +13,7 @@ checkLogin();
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
-    <title>Components / Accordion - NiceAdmin Bootstrap Template</title>
-    <meta content="" name="description">
+    <title>home</title>
     <meta content="" name="keywords">
 
     <!-- Favicons -->
