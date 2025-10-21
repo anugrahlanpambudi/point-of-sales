@@ -7,8 +7,9 @@ if(isset($_GET['delete'])){
 
     $s_photo = mysqli_query($koneksi,"SELECT product_photo FROM products WHERE id = $id");
     $row = mysqli_fetch_assoc($s_photo);
-    if(file_exists($filepath)){
-        unlink($filepath);
+    $filePath = $row['product_photo'];
+    if(file_exists($filePath)){
+        unlink($filePath);
     }
 
     $delete = mysqli_query($koneksi, "DELETE FROM products where id = $id");
@@ -32,11 +33,11 @@ if(isset($_GET['delete'])){
         <div class="col-sm-12">
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-tittle">Data Products</h3>
+                    <h3 class="card-title">Data Products</h3>
                 </div>
                 <div class="card-body">
                     <div class="d-flex justify-content-end p-2">
-                        <a href="?page=add-product" class="btn btn-primary">Add</a>
+                        <a href="?page=add-product" class="btn btn-primary"><i class="bi bi-plus-circle"></i>Add</a>
                     </div>
                     <table class="table table-bordered">
                         <tr>
@@ -52,14 +53,14 @@ if(isset($_GET['delete'])){
                         ?>
                         <tr>
                             <td><?php echo $key + 1; ?></td>
-                            <td><?php echo $value['category_id']; ?></td>
+                            <td><?php echo $value['c_name']; ?></td>
                             <td><?php echo $value['product_name']; ?></td>
                             <td> <img src="<?php echo $value['product_photo']?>" alt="" width="115"> </td>
                             <td><?php echo 'Rp.' . number_format($value['product_price'], 2, ',', '.'); ?></td>
                             <td> <a href="?page=add-product&edit=<?php echo $value['id']?>" class="btn btn-success btn-sm"> 
                                 <i class="bi bi-pencil"></i> Edit </a>
                                 <a href="?page=product&delete=<?php echo $value['id']?>" class="btn btn-warning btn-sm" onclick="return confirm('Are you sure for delete this?')" > 
-                                <i class="bi bi-trash">Delete</i> </a>
+                                <i class="bi bi-trash"></i>Delete</a>
                             </td>    
                         </tr>
                         <?php

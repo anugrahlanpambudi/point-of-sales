@@ -6,13 +6,15 @@ if(isset($_POST['login'])){
     $email = trim($_POST['email']); //trim untuk handle spasi
     $password = trim($_POST['password']);
 
+    $sha1 = sha1($password);
+
     $query = mysqli_query($koneksi, "SELECT * FROM users WHERE email ='$email'");
 
     //num_rows : untuk mengecek didalam table query ada apa engga, kalo ada 1 sebaliknya akan 0
     if(mysqli_num_rows($query) > 0){
         $user = mysqli_fetch_assoc($query);//untuk mengambil baris hasil query dari database dalam bentuk array asosiatif.
         //jika user input password sama seperti yang ada di table
-        if($password === $user['password']){
+        if($sha1 === $user['password']){
             $_SESSION['ID'] = $user['id'];
             $_SESSION['NAME'] = $user['name'];
             header("location:home.php");
