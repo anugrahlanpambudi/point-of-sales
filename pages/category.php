@@ -27,11 +27,11 @@ if (isset($_GET['delete'])) {
         <div class="col-sm-12">
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-tittle">Manage Category</h3>
+                    <h3 class="card-tittle">Data Categories</h3>
                 </div>
                 <div class="card-body">
                     <div class="d-flex justify-content-end m-2">
-                        <a href="?page=tambah-category" class="btn btn-primary">Add</a>
+                        <a href="?page=tambah-category" class="btn btn-primary">Add Categories</a>
                     </div>
                     <table class="table table-bordered">
                         <tr>
@@ -47,10 +47,10 @@ if (isset($_GET['delete'])) {
                             <td> <?php echo $key + 1; ?></td>
                             <td> <?php echo $category['category_name']; ?></td>
                             <td>
-                                <a href="?page=tambah-category&edit=<?php echo $category['id']; ?>" class="btn btn-success">Edit</a>
+                                <a href="?page=tambah-category&edit=<?php echo $category['id']; ?>" class="btn btn-success"><i class="bi bi-pencil"></i> Edit</a>
                                 <form class="d-inline" action="?page=category&delete=<?php echo $category['id']; ?>" method="post"
                                     onclick="return confirm('Are you sure for delete this?')">
-                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                    <button type="submit" class="btn btn-danger"><i class="bi bi-trash"></i> Delete</button>
                                 </form>
                             </td>
                         </tr>
