@@ -1,46 +1,20 @@
 document.getElementById("product-title").innerHTML = "Data Product";
 
-//document.querySelector("product-title"); //cara kedua
-
-let btn = document.getElementsByClassName('category-btn');
-// btn[1].style.color = "red"; //cara ganti warna 1 1
-console.log("ini btn:", btn);
-
-//cara mengganti warna kalimat dalam semua btn
-// let buttons = document.querySelectorAll(".category-btn");
-// buttons.forEach((btn) => {
-//     btn.style.color = "violet";
-//     console.log(btn);     
-// })
-
-
-// let card = document.getElementById("card");
-// let h3 = document.createElement("h3");
-// let textH3 = document.createTextNode("Selamat Datang");
-// h3.textContent = "selamat datang dengan textcontent";
-
-// let p = document.createElement("p");
-// p.innerText = "Duarrr";
-// p.textContent = "Babiiii";
-
-// nambahin element didalam card
-// card.appendChild(h3);
-// card.appendChild(p);
-
 let currentCategory = "all";
+let cart = [];
+
 function filterCategory(category, event){
     currentCategory = category;
 
     let buttons = document.querySelectorAll('.category-btn');
     buttons.forEach((btn) => {
-        btn.classList.remove("active");
-        btn.classList.remove("btn-primary");
+        btn.classList.remove("active", "btn-primary");
         btn.classList.add("btn-outline-primary");
     });
-    event.classList.add("active");
+
+    event.classList.add("active", "btn-primary");
     event.classList.remove("btn-outline-primary");
-    event.classList.add("btn-primary");
-    console.log({currentCategory: currentCategory, category: category, event: event});
+
     renderProducts();
 }
 
@@ -48,36 +22,141 @@ function renderProducts(searchProduct = ""){
     const productGrid = document.getElementById("productGrid");
     productGrid.innerHTML = "";
 
-    //filter
     const filtered = products.filter((p) => {
-        //shorthand / ternery
-        const matchCategory = currentCategory ==="all" || p.category_name === currentCategory;
+        const matchCategory = currentCategory === "all" || p.category_name === currentCategory;
         const matchSearch = p.product_name.toLowerCase().includes(searchProduct);
         return matchCategory && matchSearch;
     });
-    
 
-    //munculin data dari table products
-    filtered.forEach((product) =>{
+    filtered.forEach((product) => {
         const col = document.createElement("div");
         col.className = "col-md-4 col-sm-6";
-        col.innerHTML = 
-        `<div class="card product-card">
+        col.innerHTML = `
+        <div class="card product-card" onclick="addToCart(${product.id})">
             <div class="product-img">
                 <img src="../${product.product_photo}" alt="" width="100%">
             </div>
             <div class="card-body">
-                <span class="badge bg-secondary badge-category">Food</span>
+                <span class="badge bg-secondary badge-category">${product.category_name}</span>
                 <h6 class="card-title mt-2 mb-2">${product.product_name}</h6>
-                <p class="card-text text-primary fw-bold">${product.product_price}</p>
+                <p class="card-text text-primary fw-bold">Rp. ${Number(product.product_price).toLocaleString()}</p>
             </div>
         </div>`;
         productGrid.appendChild(col);
     });
 }
-renderProducts();
 
+function addToCart(id){
+    const productData = products.find((p) => p.id == id);
+    if (!productData) return;
+
+    const existing = cart.find((item) => item.id == id);
+    if (existing) {
+        existing.quantity += 1;
+    } else {
+        cart.push({ ...productData, quantity: 1 });
+    }
+
+    renderCart();
+}
+
+function renderCart(){
+    const cartContainer = document.querySelector("#cartItems");
+    cartContainer.innerHTML = "";
+
+    if (cart.length === 0) {
+        cartContainer.innerHTML = `
+            <div class="text-center text-muted mt-5">
+                <i class="bi bi-cart mb-3"></i>
+                <p>Cart Empty</p>
+            </div>`;
+        updateCartTotals();
+        return;
+    }
+
+    cart.forEach((item, index) => {
+        const div = document.createElement("div");
+        div.className = "cart-item d-flex justify-content-between align-items-center mb-2";
+        div.innerHTML = `
+            <div>
+                <strong>${item.product_name}</strong><br>
+                <small>Qty: ${item.quantity}</small>
+            </div>
+            <div>
+                <span>Rp. ${(item.product_price * item.quantity).toLocaleString()}</span>
+                <button class="btn btn-sm btn-secondary ms-1 decreaseBtn" data-index="${index}">
+                    <i class="bi bi-dash"></i>
+                </button>
+                <button class="btn btn-sm btn-success ms-1 increaseBtn" data-index="${index}">
+                    <i class="bi bi-plus"></i>
+                </button>
+            </div>`;
+        cartContainer.appendChild(div);
+    });
+
+    // tombol kurangi quantity
+    document.querySelectorAll(".decreaseBtn").forEach(btn => {
+        btn.addEventListener("click", function(){
+            const idx = this.dataset.index;
+            if (cart[idx].quantity > 1){
+                cart[idx].quantity -= 1;
+            } else {
+                cart.splice(idx, 1);
+            }
+            renderCart();
+        });
+    });
+
+    // tombol tambah quantity
+    document.querySelectorAll(".increaseBtn").forEach(btn => {
+        btn.addEventListener("click", function(){
+            const idx = this.dataset.index;
+            cart[idx].quantity += 1;
+            renderCart();
+        });
+    });
+
+    updateCartTotals();
+}
+
+function updateCartTotals(){
+    let subtotal = 0;
+    cart.forEach(item => subtotal += item.product_price * item.quantity);
+    let tax = subtotal * 0.1; // tax 10%
+    let total = subtotal + tax;
+
+    document.getElementById("subtotal").textContent = "Rp. " + subtotal.toLocaleString();//pake textcontent karna menggunakan span
+    document.getElementById("tax").textContent = "Rp. " + tax.toLocaleString();
+    document.getElementById("total").textContent = "Rp. " + total.toLocaleString();
+}
+
+async function proccessPayment() {
+    if (cart.length === 0){
+        alert("cart still empty");
+    }
+    try {
+        const res = await fetch("add-pos.php?payment", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ cart }),
+        });
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+
+// Event listener search product
 document.getElementById('searchProduct').addEventListener('input', function(e) {
     const searchProduct = e.target.value.toLowerCase();
     renderProducts(searchProduct);
 });
+
+// Event listener clear cart
+document.getElementById("clearCartBtn").addEventListener("click", () => {
+    cart = [];
+    renderCart();
+});
+
+renderProducts();
+renderCart();

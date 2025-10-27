@@ -6,6 +6,48 @@ $fetchCats = mysqli_fetch_all($queryCat, MYSQLI_ASSOC);
 
 $queryProducts = mysqli_query($koneksi, 'SELECT c.category_name, p.* FROM products p LEFT JOIN categories c ON c.id = p.category_id');
 $fetchProducts = mysqli_fetch_all($queryProducts, MYSQLI_ASSOC);
+
+if (isset($_GET['payment'])) {
+    $data = json_decode(file_get_contents('php://input'), true);
+
+    $cart = $data['cart'];
+    $subtotal = array_reduce(
+        $cart,
+        function ($sum, $item) {
+            return $sum + $item['product_price'] * $item['quantity'];
+        },
+        0,
+    );
+    $tax = $subtotal * 0.1;
+    $orderAmounth = $subtotal + $tax;
+    $ordercode = 'ODR-' . date('YmdHis');
+    $orderDate = date('Y-m-d H:i:s');
+    $orderChange = 0;
+    $orderStatus = 1;
+
+    $insertOrder = mysqli_query(
+        $koneksi,
+        "INSERT INTO orders(order_code, order_date, order_amount, order_change, order_status) 
+    VALUES('$ordercode', '$orderDate', '$orderAmounth', '$orderChange', '$orderStatus')",
+    );
+    $idOrder = mysqli_insert_id($koneksi);
+    
+
+    if (!$insertOrder) {
+        echo 'Error: ' . mysqli_error($koneksi); // Ini akan menampilkan pesan error SQL
+    } else {
+        echo 'Order inserted successfully!';
+    }
+
+    foreach ($cart as $v){
+        $products_id = $v['id'];
+        $qty = $v['quantity'];
+        $order_price = $v['product_price'];
+        $subtotal = $qty * $order_price;
+
+        $insertOrderDetails = mysqli_query($koneksi, "INSERT INTO order_details (order_id, product_id, qty, order_price, order_subtotal) VALUES ('$idOrder', '$product_id', '$qty', '$order_price', '$subtotal')");
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -77,12 +119,13 @@ $fetchProducts = mysqli_fetch_all($queryProducts, MYSQLI_ASSOC);
                     </div>
                     <div class="row g-2">
                         <div class="col-md-6">
-                            <button class="btn btn-outline-danger w-100">
-                                <i class="bi bi-trash">Clear Cart</i>
+                            <button id="clearCartBtn" class="btn btn-outline-danger w-100">
+                                <i class="bi bi-trash"></i> Clear Cart
                             </button>
                         </div>
+
                         <div class="col-md-6">
-                            <button class="btn btn-checkout btn-primary w-100">
+                            <button class="btn btn-checkout btn-primary w-100" onclick="proccessPayment()">
                                 <i class="bi bi-cash"></i> Process Payment
                             </button>
                         </div>
@@ -95,9 +138,13 @@ $fetchProducts = mysqli_fetch_all($queryProducts, MYSQLI_ASSOC);
         </div>
     </div>
 
+
     <script>
         const products = <?php echo json_encode($fetchProducts); ?>;
+        console.log("Products loaded:", products);
     </script>
+
+
 
     <script src="../assets/js/alan.js"></script>
 
