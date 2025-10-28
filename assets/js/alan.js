@@ -133,14 +133,25 @@ function updateCartTotals(){
 async function proccessPayment() {
     if (cart.length === 0){
         alert("cart still empty");
+        return;
     }
+    // console.log(cart);
     try {
         const res = await fetch("add-pos.php?payment", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ cart }),
         });
+        const data = await res.json();
+        if (data.status == "success"){
+            alert("Transaction Successfully");
+            window.location.href = "print.php";
+        }else{
+            alert("Transaction failed", data.message);
+        }
+        
     } catch (error) {
+        alert("transaction fail")
         console.error(error);
     }
 }
