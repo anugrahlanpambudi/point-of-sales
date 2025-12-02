@@ -14,7 +14,7 @@ if (isset($_GET['payment'])) {
     $data = json_decode(file_get_contents('php://input'), true);
     
     $cart = $data['cart'];
-    $subtotal = array_reduce(
+    $total = array_reduce(
         $cart,
         function ($sum, $item) {
             return $sum + $item['product_price'] * $item['quantity'];
@@ -22,12 +22,13 @@ if (isset($_GET['payment'])) {
         0,
     );
 
-    $tax = $subtotal * 0.1;
-    $orderAmounth = $subtotal + $tax;
-    $ordercode = 'ODR-' . date('YmdHis');
-    $orderDate = date('Y-m-d H:i:s');
+    $tax = $data['tax'];
+    $orderAmounth = $data['grandTotal'];
+    $ordercode = $data['order_code'];
+    $orderDate = date("Y-m-d H:i:s");
     $orderChange = 0;
     $orderStatus = 1;
+    $subtotal = $data['subtotal'];
     try{
         $insertOrder = mysqli_query(
             $koneksi,
@@ -69,17 +70,17 @@ if (isset($_GET['payment'])) {
 
     }
 
-
-
-    
-
-    if (!$insertOrder) {
-        echo 'Error: ' . mysqli_error($koneksi); // Ini akan menampilkan pesan error SQL
-    } else {
-        echo 'Order inserted successfully!';
-    }
-
+    // if (!$insertOrder) {
+    //     echo 'Error: ' . mysqli_error($koneksi); // Ini akan menampilkan pesan error SQL
+    // } else {
+    //     echo 'Order inserted successfully!';
+    // }
 }
+$orderNumber = mysqli_query($koneksi, "SELECT id FROM orders ORDER BY id DESC LIMIT 1");
+$row = mysqli_fetch_assoc($orderNumber);
+$nextId = $row ? $row['id'] + 1 : 1; //Jika kondisi bernilai true (yaitu, jika $row ada dan tidak kosong), maka hasil dari ekspresi tersebut adalah nilai di sebelah kiri tanda :, yaitu $row['id'] + 1.
+                                    //Jika kondisi bernilai false (misalnya $row tidak ada atau kosong), maka hasil dari ekspresi tersebut adalah nilai di sebelah kanan tanda :, yaitu 1.
+$ordercode = "ORD-" . date('dmY') . str_pad($nextId,4, "0", STR_PAD_LEFT); // fungsi untuk nomor orderan
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -126,7 +127,7 @@ if (isset($_GET['payment'])) {
             <div class="col-md-5 cart-section">
                 <div class="cart-header">
                     <h4>Cart</h4>
-                    <small>Order # <span class="orderNumber">001</span></small>
+                    <small>Order # <span class="orderNumber"><?php echo $ordercode ?></span></small>
                 </div>
                 <div class="cart-items" id="cartItems">
                     <div class="text-center text-muted mt-5">
@@ -139,14 +140,17 @@ if (isset($_GET['payment'])) {
                         <div class="d-flex justify-content-between mb-2">
                             <span>Subtotal :</span>
                             <span id="subtotal">Rp. 100.000</span>
+                            <input type="hidden" id="subtotal_value">
                         </div>
                         <div class="d-flex justify-content-between mb-2">
                             <span>Tax (10%) :</span>
                             <span id="tax">Rp. 10.000</span>
+                            <input type="hidden" id="tax_value">
                         </div>
                         <div class="d-flex justify-content-between mb-2">
                             <span>Total :</span>
                             <span id="total">Rp. 110.000</span>
+                            <input type="hidden" id="total_value">
                         </div>
                     </div>
                     <div class="row g-2">
